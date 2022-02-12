@@ -7,7 +7,7 @@ services:
         volumes:
             - ./server:/app/server
         working_dir: /app/server
-        command: sh -c "pip3 install -r requirements.txt && export FLASK_APP=app && 
+        command: sh -c "pip3 install -r requirements.txt && export FLASK_APP=tails_stores && 
             export FLASK_ENV=development && flask run --host=0.0.0.0"
         ports:
             - "5000:5000"
