@@ -22,9 +22,16 @@ def search_stores(page=1, query=None):
     offset = (int(page) * limit) - limit
 
     if query is None:
-        return data[offset:offset + limit]
+        if int(page) == 1:
+            return data[0:limit]
+        else:
+            return data[limit:]
 
     search_result = [store for store in data if query.lower() in store["name"].lower() or
                      query.lower() in store["postcode"].lower()]
     sorted_result = sorted(search_result, key=lambda store: (store["postcode"], store["name"]))
-    return sorted_result[offset:offset + limit]
+
+    if int(page) == 1:
+        return sorted_result[0:limit]
+    else:
+        return sorted_result[offset:]

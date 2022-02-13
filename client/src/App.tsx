@@ -17,44 +17,57 @@ function App() {
   const [page, setPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSuggestionMode, setIsSuggestionMode] = useState<boolean>(false);
+  const [hideLoadButton, setHideLoadButton] = useState<boolean>(true);
 
   useEffect(() => {
     if (query !== "" && query.length >= 2) debounceFetchStores(page, query);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, page]);
+  }, [query]);
 
   const handleSearch = (e: ChangeEvent<HTMLInputElement>): void => {
     const query = e.target.value;
     setQuery(query);
+    setIsSuggestionMode(true);
   };
 
   const debounceFetchStores = useMemo(
     () => debounce(async (page, query) => {
       try {
         const results = await SearchService.searchStores(page, query);
-        const data: IStore[] = [...stores, ...(results as IStore[])] as IStore[];
-        // const data = stores;
-        // (results as IStore[]).forEach(store => {
-        //   if (!stores.includes(store)) data.push(store);
-        // });
+        const data: IStore[] = results as IStore[];
+        
         setStores(data);
         setIsLoading(false);
+        setHideLoadButton(false);
       } catch (error) {
         console.error(error);
       }
     }, 100),
-    [stores]
+    []
   );
 
   const handleSuggestionClick = (name: string): void => {
     setStores([]);
     setQuery(name);
+    setIsSuggestionMode(false);
   }
 
-  const loadMoreStores = (): void => {
+  const loadMoreStores = async (): Promise<void> => {
     setIsLoading(true);
-    setIsSuggestionMode(false);
-    setPage(page + 1);
+
+    try {
+      const results = await SearchService.searchStores(page + 1, query);
+      const data: IStore[] = [...stores, ...(results as IStore[])] as IStore[];
+
+      setStores(data);
+      setIsSuggestionMode(false);
+      setPage(page + 1);
+      setIsLoading(false);
+      setHideLoadButton(true);
+    } catch (error) {
+      console.error(error);
+      setIsLoading(false);
+    }
   };
 
   const reset = (): void => {
@@ -63,6 +76,7 @@ function App() {
     setPage(1);
     setIsLoading(false);
     setIsSuggestionMode(false);
+    setHideLoadButton(true);
   };
 
   return (
@@ -91,7 +105,7 @@ function App() {
               </p>
             </div>
 
-            {stores.map((store: IStore, index: number) => (
+            {isSuggestionMode && stores.map((store: IStore, index: number) => (
               <SuggestionBlock
                 key={index}
                 store={store}
@@ -108,14 +122,14 @@ function App() {
         ))}
       </div>
 
-      {stores.length > 0 && (
+      {!hideLoadButton && stores.length > 0 && (
         <div className="columns is-centered">
           <div className="column is-half">
             <button
               className={`button is-primary is-fullwidth ${isLoading && "is-loading"}`}
               onClick={loadMoreStores}
             >
-              Load More
+              Fetch Remaining Stores
             </button>
           </div>
         </div>
