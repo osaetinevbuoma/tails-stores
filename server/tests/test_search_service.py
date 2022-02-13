@@ -1,5 +1,3 @@
-import pytest
-
 from server.tails_stores.stores.services.search_service import read_json_file, search_stores
 
 

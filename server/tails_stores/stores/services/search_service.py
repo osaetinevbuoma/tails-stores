@@ -19,12 +19,12 @@ def search_stores(page=1, query=None):
 
     data = read_json_file()
     limit = 3
-    offset = (page * limit) - limit
+    offset = (int(page) * limit) - limit
 
     if query is None:
         return data[offset:offset + limit]
 
-    search_result = [store for store in data if query in store["name"].lower() or
-                     query in store["postcode"].lower()]
+    search_result = [store for store in data if query.lower() in store["name"].lower() or
+                     query.lower() in store["postcode"].lower()]
     sorted_result = sorted(search_result, key=lambda store: (store["postcode"], store["name"]))
     return sorted_result[offset:offset + limit]
